@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFK Web Explorer — Core Fundamental Knowledge for Enterprise Web</title>
+  <meta name="description" content="Platform pembelajaran interaktif berbasis first-principles untuk memahami Core Fundamental Knowledge (CFK) Enterprise Web Application.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Global Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <div class="brand-badge">CFK</div>
+        <div class="brand-text">
+          <span class="brand-title">Core Fundamental Knowledge</span>
+          <span class="brand-sub">Enterprise Web Application</span>
+        </div>
+      </div>
+
+      <nav class="nav-links">
+        <a href="#how-to-study" class="nav-link">Panduan</a>
+        <a href="#mental-model" class="nav-link">Core Loop</a>
+        <a href="#layers-matrix" class="nav-link">7 Lapisan</a>
+        <a href="#top-10" class="nav-link">10 Pilar</a>
+        <a href="#chaos-lab" class="nav-link highlight">🧪 Chaos Lab</a>
+        <a href="#study-tracker" class="nav-link">Tracker</a>
+        <a href="#readiness-test" class="nav-link">Kesiapan</a>
+      </nav>
+
+      <div class="header-actions">
+        <button id="theme-toggle" class="btn-icon" aria-label="Ganti Tema" title="Ganti Tema">
+          <svg class="sun-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="moon-icon" viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <a href="#chaos-lab" class="btn btn-primary btn-sm header-cta-desktop">Mulai Simulasi</a>
+        <button id="mobile-menu-btn" class="btn-icon mobile-menu-btn" aria-label="Buka Menu Navigasi" aria-expanded="false">
+          <svg class="menu-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+          <svg class="close-icon" viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" fill="none" stroke-width="2" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Overlay -->
+  <div id="mobile-drawer" class="mobile-drawer" aria-hidden="true">
+    <div class="mobile-drawer-backdrop" id="mobile-drawer-backdrop"></div>
+    <div class="mobile-drawer-content">
+      <div class="mobile-drawer-header">
+        <div class="brand">
+          <div class="brand-badge">CFK</div>
+          <div class="brand-text">
+            <span class="brand-title">Menu Navigasi</span>
+            <span class="brand-sub">CFK Enterprise Web</span>
+          </div>
+        </div>
+        <button id="close-drawer-btn" class="btn-icon" aria-label="Tutup Menu">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <nav class="mobile-nav-links">
+        <a href="#how-to-study" class="mobile-nav-link">
+          <span class="mob-icon">🧭</span>
+          <span>Panduan Cara Belajar</span>
+        </a>
+        <a href="#mental-model" class="mobile-nav-link">
+          <span class="mob-icon">🔄</span>
+          <span>The Core Loop</span>
+        </a>
+        <a href="#layers-matrix" class="mobile-nav-link">
+          <span class="mob-icon">🏛️</span>
+          <span>7 Lapisan CFK</span>
+        </a>
+        <a href="#top-10" class="mobile-nav-link">
+          <span class="mob-icon">💎</span>
+          <span>10 Pilar Inti</span>
+        </a>
+        <a href="#chaos-lab" class="mobile-nav-link highlight">
+          <span class="mob-icon">🧪</span>
+          <span>Chaos Lab (Simulasi)</span>
+        </a>
+        <a href="#study-tracker" class="mobile-nav-link">
+          <span class="mob-icon">✅</span>
+          <span>Tracker Belajar Mandiri</span>
+        </a>
+        <a href="#readiness-test" class="mobile-nav-link">
+          <span class="mob-icon">📊</span>
+          <span>Uji Kesiapan Mandiri</span>
+        </a>
+      </nav>
+      <div class="mobile-drawer-footer">
+        <a href="#chaos-lab" class="btn btn-primary" id="mobile-start-sim-btn" style="width: 100%; text-align: center;">Mulai Simulasi Chaos</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-backdrop"></div>
+    <div class="hero-content">
+      <div class="hero-pill">
+        <span class="pulse-dot"></span>
+        First-Principles Software Engineering
+      </div>
+      <h1 class="hero-title">
+        Kuasai Sistem Web Enterprise,<br>
+        <span class="text-gradient">Bukan Sekadar Menghafal Framework.</span>
+      </h1>
+      <p class="hero-description">
+        Framework (React, Spring, Laravel, Next.js) silih berganti setiap 3–5 tahun. Namun <strong>Core Fundamental Knowledge (CFK)</strong>—protokol jaringan, model memori, konkurensi, ACID, dan batas kepercayaan—tetap relevan seumur hidup karier engineering Anda.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#how-to-study" class="btn btn-primary btn-lg">
+          <span>🧭 Panduan Cara Belajar</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+        </a>
+        <a href="#chaos-lab" class="btn btn-outline btn-lg">
+          <span>🧪 Coba Chaos Lab</span>
+        </a>
+        <a href="#layers-matrix" class="btn btn-outline btn-lg">
+          <span>7 Lapisan CFK</span>
+        </a>
+      </div>
+
+      <div class="hero-metrics">
+        <div class="metric-card">
+          <div class="metric-num">7</div>
+          <div class="metric-label">Lapisan Arsitektur</div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-card">
+          <div class="metric-num">1</div>
+          <div class="metric-label">Mental Loop Pengikat</div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-card">
+          <div class="metric-num">6</div>
+          <div class="metric-label">Dimensi Kualitas Sistem</div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-card">
+          <div class="metric-num">3</div>
+          <div class="metric-label">Laboratorium Chaos Interaktif</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 0: How to Study CFK Effectively -->
+  <section id="how-to-study" class="section-container" style="padding-top: 2rem;">
+    <div class="section-header">
+      <div class="section-tag">Metodologi Belajar</div>
+      <h2 class="section-title">Bagaimana Cara Efektif Menguasai CFK?</h2>
+      <p class="section-sub">
+        Materi fundamental sering gagal dipelajari karena diajarkan seperti buku teks hafalan. Pendekatan tercepat dan terkuat adalah <strong>First-Principles</strong>: pahami alur besar, alami kegagalan sistem secara visual, baru pelajari teorinya.
+      </p>
+    </div>
+
+    <!-- 4-Step Spiral Methodology Cards -->
+    <div class="study-steps-grid">
+      <div class="study-step-card">
+        <div class="step-badge">Langkah 1</div>
+        <div class="step-icon">🔄</div>
+        <h3>Bentuk Model Mental</h3>
+        <p>Pahami bahwa seluruh sistem web di dunia adalah siklus <code>Request → Compute → State → Response</code>. Setiap baris kode Anda hidup di dalam siklus ini.</p>
+        <div class="step-action">
+          <a href="#mental-model" class="step-link">Pelajari The Core Loop &darr;</a>
+        </div>
+      </div>
+
+      <div class="study-step-card">
+        <div class="step-badge">Langkah 2</div>
+        <div class="step-icon">💥</div>
+        <h3>Rasakan Kerusakan (Failure-Driven)</h3>
+        <p>Anda tidak akan pernah paham fungsi <em>Queue</em> atau <em>Database Lock</em> jika belum pernah melihat server membeku akibat HTTP Timeout atau saldo minus.</p>
+        <div class="step-action">
+          <a href="#chaos-lab" class="step-link">Buka Simulator Chaos &darr;</a>
+        </div>
+      </div>
+
+      <div class="study-step-card">
+        <div class="step-badge">Langkah 3</div>
+        <div class="step-icon">🏛️</div>
+        <h3>Bedah 7 Lapisan Arsitektur</h3>
+        <p>Gunakan 7 Lapisan sebagai kamus arsitektur. Perhatikan bagian <strong>Jebakan Fatal (Gotcha)</strong> dan <strong>Uji Wawancara Senior</strong> di tiap layer.</p>
+        <div class="step-action">
+          <a href="#layers-matrix" class="step-link">Eksplorasi 7 Layer &darr;</a>
+        </div>
+      </div>
+
+      <div class="study-step-card">
+        <div class="step-badge">Langkah 4</div>
+        <div class="step-icon">🎯</div>
+        <h3>Uji Kesiapan & Evaluasi Mandiri</h3>
+        <p>Uji insting engineering Anda lewat 5 skenario insiden produksi nyata (*Root Cause Analysis*). Dapatkan skor kesiapan level Anda.</p>
+        <div class="step-action">
+          <a href="#readiness-test" class="step-link">Mulai Uji Kesiapan &darr;</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Role-based Learning Pathways -->
+    <div class="tracks-card">
+      <div class="tracks-header">
+        <span class="tracks-tag">Rekomendasi Terarah</span>
+        <h3>Pilih Jalur Belajar Berdasarkan Target Anda</h3>
+        <p>Setiap orang memiliki latar belakang dan kebutuhan yang berbeda. Pilih jalur yang paling sesuai dengan Anda:</p>
+      </div>
+
+      <div class="tracks-tabs" id="tracks-tabs">
+        <button class="track-tab-btn active" data-track="beginner">🐣 Jalur Pemula (Spiral Track)</button>
+        <button class="track-tab-btn" data-track="fasttrack">🚀 Jalur Fast-Track (Interview / Senior)</button>
+        <button class="track-tab-btn" data-track="practitioner">🛠️ Jalur Praktisi (Hands-on Local Docker)</button>
+      </div>
+
+      <div class="track-detail-box" id="track-detail-box">
+        <!-- Rendered by JavaScript -->
+      </div>
+    </div>
+
+    <!-- The 3 Magic Questions Widget -->
+    <div class="widget-three-questions">
+      <div class="widget-header">
+        <div class="widget-icon">⚡</div>
+        <div>
+          <h3>Metode 3 Pertanyaan Sakti (First-Principles Thinking)</h3>
+          <p>Saat Anda menemui teknologi atau framework baru, jangan langsung hafalkan kodenya. Ajukan 3 pertanyaan ini:</p>
+        </div>
+      </div>
+
+      <div class="tech-picker">
+        <span class="picker-label">Pilih Contoh Teknologi:</span>
+        <div class="tech-buttons" id="tech-buttons">
+          <button class="btn-tech active" data-tech="redis">Redis Cache</button>
+          <button class="btn-tech" data-tech="rabbitmq">RabbitMQ / Redis Queue</button>
+          <button class="btn-tech" data-tech="jwt">Stateless JWT</button>
+          <button class="btn-tech" data-tech="btree">B-Tree Database Index</button>
+          <button class="btn-tech" data-tech="nginx">Nginx Reverse Proxy</button>
+          <button class="btn-tech" data-tech="minio">MinIO / S3 Object Storage</button>
+        </div>
+      </div>
+
+      <div class="three-questions-answers" id="three-questions-answers">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 1: The Core Mental Model -->
+  <section id="mental-model" class="section-container">
+    <div class="section-header">
+      <div class="section-tag">Pusat Konseptual</div>
+      <h2 class="section-title">The Core Loop & Quality Attributes</h2>
+      <p class="section-sub">
+        Semua sistem web pada hakikatnya adalah siklus ini. Seorang Software Engineer tidak hanya membuat alur ini berjalan (status 200), tetapi terus-menerus menantang setiap titiknya dengan <strong>6 Atribut Kualitas</strong>.
+      </p>
+    </div>
+
+    <!-- Interactive Quality Attribute Filter Bar -->
+    <div class="quality-filter-bar">
+      <span class="filter-label">Uji Sudut Pandang Kualitas:</span>
+      <div class="quality-buttons" id="quality-buttons">
+        <button class="btn-quality active" data-quality="all">Semua Dimensi</button>
+        <button class="btn-quality" data-quality="correct">✅ Correct?</button>
+        <button class="btn-quality" data-quality="secure">🛡️ Secure?</button>
+        <button class="btn-quality" data-quality="reliable">🔄 Reliable?</button>
+        <button class="btn-quality" data-quality="performant">⚡ Performant?</button>
+        <button class="btn-quality" data-quality="maintainable">🛠️ Maintainable?</button>
+        <button class="btn-quality" data-quality="observable">👁️ Observable?</button>
+      </div>
+    </div>
+
+    <!-- Visual Interactive Pipeline -->
+    <div class="pipeline-board">
+      <div class="pipeline-grid">
+        <!-- Node 1: Client / User -->
+        <div class="pipe-node" data-node="client" id="node-client">
+          <div class="node-header">
+            <span class="node-icon">💻</span>
+            <span class="node-title">1. Client / Browser</span>
+          </div>
+          <div class="node-body">
+            <p>UI State, DOM Render, Event Loop, Local Storage / Cookie.</p>
+            <div class="node-tags">
+              <span class="tag">Browser Runtime</span>
+              <span class="tag">Fetch / XHR</span>
+            </div>
+          </div>
+          <div class="node-quality-flags" id="flags-client"></div>
+        </div>
+
+        <div class="pipe-arrow">
+          <div class="arrow-line"></div>
+          <span class="arrow-label">HTTP Request</span>
+        </div>
+
+        <!-- Node 2: Web Application Server -->
+        <div class="pipe-node" data-node="server" id="node-server">
+          <div class="node-header">
+            <span class="node-icon">⚙️</span>
+            <span class="node-title">2. Web Application Tier</span>
+          </div>
+          <div class="node-body">
+            <p>Routing, Auth & JWT, Middleware Chain, Business Invariants, Input Validation.</p>
+            <div class="node-tags">
+              <span class="tag">Stateless Compute</span>
+              <span class="tag">Concurrency</span>
+            </div>
+          </div>
+          <div class="node-quality-flags" id="flags-server"></div>
+        </div>
+
+        <div class="pipe-arrow">
+          <div class="arrow-line"></div>
+          <span class="arrow-label">Query / I/O</span>
+        </div>
+
+        <!-- Node 3: State & External Tier -->
+        <div class="pipe-node" data-node="state" id="node-state">
+          <div class="node-header">
+            <span class="node-icon">🗄️</span>
+            <span class="node-title">3. State & Persistence</span>
+          </div>
+          <div class="node-body">
+            <p>Database (ACID/Relasional), Cache (Redis), Object Store (MinIO/S3), External APIs.</p>
+            <div class="node-tags">
+              <span class="tag">Stateful Storage</span>
+              <span class="tag">Transaction Pool</span>
+            </div>
+          </div>
+          <div class="node-quality-flags" id="flags-state"></div>
+        </div>
+      </div>
+
+      <!-- Node Detail Inspector Card -->
+      <div class="node-inspector" id="node-inspector">
+        <div class="inspector-header">
+          <div class="inspector-title" id="inspector-title">Pilih salah satu komponen di atas</div>
+          <div class="inspector-badge" id="inspector-badge">CFK Focus</div>
+        </div>
+        <div class="inspector-content" id="inspector-content">
+          Klik komponen <strong>Client</strong>, <strong>Web Application</strong>, atau <strong>State & Persistence</strong> untuk membedah tantangan teknis, pertimbangan arsitektur, dan checklist kualitas di titik tersebut.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 2: The 7 Layers of Enterprise Web -->
+  <section id="layers-matrix" class="section-container">
+    <div class="section-header">
+      <div class="section-tag">Struktur Taksonomi</div>
+      <h2 class="section-title">7 Lapisan Core Fundamental Knowledge</h2>
+      <p class="section-sub">
+        Setiap layer menjelaskan satu segmen utuh dari rekayasa sistem web. Klik setiap layer untuk melihat konsep kunci, fenomena dunia nyata yang dijelaskan, dan jebakan fatal yang sering dialami developer.
+      </p>
+    </div>
+
+    <!-- Live Concept Search Bar -->
+    <div class="search-bar-container">
+      <div class="search-input-wrapper">
+        <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input type="text" id="concept-search-input" placeholder="Cari topik atau konsep (misal: DNS, timeout, lock, ACID, event loop, JWT, queue, CORS)..." aria-label="Cari Konsep">
+        <button id="clear-search-btn" class="clear-search-btn" title="Bersihkan Pencarian" style="display: none;">&times;</button>
+      </div>
+      <div class="search-result-hint" id="search-result-hint"></div>
+    </div>
+
+    <div class="layers-wrapper" id="layers-accordion">
+      <!-- Generated by JavaScript for rich data and maintainability -->
+    </div>
+  </section>
+
+  <!-- Section 3: The 10 Essential Distilled CFK -->
+  <section id="top-10" class="section-container">
+    <div class="section-header">
+      <div class="section-tag">Esensi Murni</div>
+      <h2 class="section-title">10 CFK Paling Fundamental</h2>
+      <p class="section-sub">
+        Jika seluruh ilmu web engineering diperas menjadi 10 prinsip abadi yang mentransendensikan semua framework modern.
+      </p>
+    </div>
+
+    <div class="cfk-grid" id="top-10-grid">
+      <!-- Populated dynamically by JS -->
+    </div>
+  </section>
+
+  <!-- Section 4: Interactive Chaos Labs (The Real-World Simulator) -->
+  <section id="chaos-lab" class="section-container highlight-section">
+    <div class="section-header">
+      <div class="section-tag special">Laboratorium Praktika</div>
+      <h2 class="section-title">🧪 Chaos Labs: Buktikan dengan Simulasi</h2>
+      <p class="section-sub">
+        Teori mudah dihafal, tetapi hanya dipahami saat sistem mulai rusak. Uji pemahaman Anda pada 3 skenario enterprise dunia nyata berikut.
+      </p>
+    </div>
+
+    <!-- Lab Tabs -->
+    <div class="lab-tabs">
+      <button class="lab-tab active" data-lab="video-stt">
+        <span class="lab-tab-num">01</span>
+        <span>Upload Video & STT Timeout</span>
+      </button>
+      <button class="lab-tab" data-lab="race-condition">
+        <span class="lab-tab-num">02</span>
+        <span>Concurrency & Double-Spend</span>
+      </button>
+      <button class="lab-tab" data-lab="db-index">
+        <span class="lab-tab-num">03</span>
+        <span>Database Indexing & Latency</span>
+      </button>
+    </div>
+
+    <!-- Lab Content Container -->
+    <div class="lab-content" id="lab-container">
+      <!-- Active Lab will be rendered here -->
+    </div>
+  </section>
+
+  <!-- Section 4.5: Personal Study Progress Tracker -->
+  <section id="study-tracker" class="section-container" style="padding-top: 1.5rem;">
+    <div class="section-header">
+      <div class="section-tag">Retensi & Pantau Kemajuan</div>
+      <h2 class="section-title">Checklist Penguasaan CFK Mandiri</h2>
+      <p class="section-sub">
+        Gunakan checklist ini untuk memandu proses belajar Anda langkah demi langkah. Setiap milestone yang Anda centang akan tersimpan secara otomatis di browser Anda.
+      </p>
+    </div>
+
+    <div class="tracker-card">
+      <div class="tracker-status-box">
+        <div class="tracker-info">
+          <span class="tracker-title">Status Kemajuan Belajar Anda</span>
+          <span class="tracker-percent" id="tracker-percent">0% Selesai</span>
+        </div>
+        <div class="tracker-bar">
+          <div class="tracker-bar-fill" id="tracker-bar-fill"></div>
+        </div>
+        <div class="tracker-summary" id="tracker-summary">0 dari 8 milestone tercapai.</div>
+      </div>
+
+      <div class="milestone-list" id="milestone-list">
+        <!-- Milestones rendered dynamically by JavaScript -->
+      </div>
+
+      <div class="tracker-actions">
+        <button id="btn-reset-tracker" class="btn btn-outline btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+          Reset Checklist
+        </button>
+        <button id="btn-check-all-tracker" class="btn btn-primary btn-sm">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          Tandai Semua Selesai
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Readiness Assessment & Self-Checklist -->
+  <section id="readiness-test" class="section-container">
+    <div class="section-header">
+      <div class="section-tag">Evaluasi Mandiri</div>
+      <h2 class="section-title">Uji Kesiapan Engineer Enterprise</h2>
+      <p class="section-sub">
+        Uji kemampuan Anda dalam menganalisis kasus arsitektur nyata. Bukan pertanyaan hafalan sintaksis, melainkan pengambilan keputusan engineering.
+      </p>
+    </div>
+
+    <div class="quiz-card" id="quiz-card">
+      <div class="quiz-header">
+        <div class="quiz-progress-text">Pertanyaan <span id="quiz-current">1</span> dari <span id="quiz-total">5</span></div>
+        <div class="quiz-progress-bar"><div class="quiz-progress-fill" id="quiz-progress-fill"></div></div>
+      </div>
+      <div class="quiz-body" id="quiz-body">
+        <!-- Quiz questions rendered by JS -->
+      </div>
+      <div class="quiz-footer" id="quiz-footer">
+        <button id="btn-next-quiz" class="btn btn-primary" disabled>Lanjut Pertanyaan</button>
+      </div>
+    </div>
+
+    <!-- Docker Companion Box -->
+    <div class="docker-companion-card">
+      <div class="companion-icon">🐳</div>
+      <div class="companion-info">
+        <h3>Ingin Menjalankan Lab Ini Secara Nyata di Mesin Lokal?</h3>
+        <p>Gunakan starter template Docker Compose kami yang berisi PostgreSQL, Redis, dan Go/Node mini-service yang telah disiapkan untuk mereproduksi kasus-kasus di atas.</p>
+      </div>
+      <div class="companion-action">
+        <button id="btn-copy-docker" class="btn btn-outline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Salin `docker-compose.yml`
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-badge">CFK</div>
+        <span>Core Fundamental Knowledge — Enterprise Web Application</span>
+      </div>
+      <p class="footer-motto">
+        "Frameworks are perishable tools. Fundamental engineering is evergreen leverage."
+      </p>
+      <div class="footer-links">
+        <a href="#mental-model">The Core Loop</a>
+        <a href="#layers-matrix">7 Layers</a>
+        <a href="#chaos-lab">Chaos Lab</a>
+        <a href="#readiness-test">Self Assessment</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast" role="alert" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
