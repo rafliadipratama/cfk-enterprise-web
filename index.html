@@ -28,6 +28,7 @@
         <a href="#layers-matrix" class="nav-link">7 Lapisan</a>
         <a href="#top-10" class="nav-link">10 Pilar</a>
         <a href="#chaos-lab" class="nav-link highlight">🧪 Chaos Lab</a>
+        <a href="#incident-room" class="nav-link highlight-warn">🚨 War Room</a>
         <a href="#study-tracker" class="nav-link">Tracker</a>
         <a href="#readiness-test" class="nav-link">Kesiapan</a>
       </nav>
@@ -81,7 +82,11 @@
         </a>
         <a href="#chaos-lab" class="mobile-nav-link highlight">
           <span class="mob-icon">🧪</span>
-          <span>Chaos Lab (Simulasi)</span>
+          <span>Chaos Lab (4 Simulasi)</span>
+        </a>
+        <a href="#incident-room" class="mobile-nav-link highlight-warn">
+          <span class="mob-icon">🚨</span>
+          <span>War Room Insiden (RCA Game)</span>
         </a>
         <a href="#study-tracker" class="mobile-nav-link">
           <span class="mob-icon">✅</span>
@@ -144,8 +149,13 @@
         </div>
         <div class="metric-divider"></div>
         <div class="metric-card">
-          <div class="metric-num">3</div>
-          <div class="metric-label">Laboratorium Chaos Interaktif</div>
+          <div class="metric-num">4</div>
+          <div class="metric-label">Laboratorium Chaos</div>
+        </div>
+        <div class="metric-divider"></div>
+        <div class="metric-card">
+          <div class="metric-num">1</div>
+          <div class="metric-label">War Room RCA</div>
         </div>
       </div>
     </div>
@@ -396,7 +406,7 @@
       <div class="section-tag special">Laboratorium Praktika</div>
       <h2 class="section-title">🧪 Chaos Labs: Buktikan dengan Simulasi</h2>
       <p class="section-sub">
-        Teori mudah dihafal, tetapi hanya dipahami saat sistem mulai rusak. Uji pemahaman Anda pada 3 skenario enterprise dunia nyata berikut.
+        Teori mudah dihafal, tetapi hanya dipahami saat sistem mulai rusak. Uji pemahaman Anda pada 4 skenario enterprise dunia nyata berikut.
       </p>
     </div>
 
@@ -414,11 +424,118 @@
         <span class="lab-tab-num">03</span>
         <span>Database Indexing & Latency</span>
       </button>
+      <button class="lab-tab" data-lab="cache-stampede">
+        <span class="lab-tab-num">04</span>
+        <span>Cache Stampede & DB Pool Crash</span>
+      </button>
     </div>
 
     <!-- Lab Content Container -->
     <div class="lab-content" id="lab-container">
       <!-- Active Lab will be rendered here -->
+    </div>
+  </section>
+
+  <!-- Section 4.2: Incident War Room Simulator (Root Cause Analysis Game) -->
+  <section id="incident-room" class="section-container highlight-section war-room-section">
+    <div class="section-header">
+      <div class="section-tag alert">Simulasi Insiden Produksi</div>
+      <h2 class="section-title">🚨 War Room: Penanganan Insiden Sistem Skala Besar</h2>
+      <p class="section-sub">
+        Pukul 02:15 WIB di Hari Gajian — Server Web Menyerah & Database Hang. Anda bertindak sebagai <strong>On-Call Principal Engineer</strong>. Lakukan triase darurat, temukan akar masalah (<em>Root Cause</em>), dan pulihkan sistem sebelum bisnis mengalami kerugian fatal!
+      </p>
+    </div>
+
+    <!-- Live Incident Telemetry Dashboard -->
+    <div class="war-room-dashboard">
+      <div class="incident-status-banner" id="incident-banner">
+        <div class="banner-pulse-dot" id="banner-pulse"></div>
+        <div class="banner-content">
+          <div class="banner-title" id="incident-status-title">STATUS: P1 CRITICAL OUTAGE — Flash Sale Checkout Stalled</div>
+          <div class="banner-sub" id="incident-status-desc">Active Alert: HTTP 504 Spiking, Database Connection Pool Saturated (100/100)</div>
+        </div>
+        <div class="banner-badge critical" id="incident-severity-badge">SEVERITY 1</div>
+      </div>
+
+      <!-- 4 Telemetry Metrics -->
+      <div class="telemetry-grid">
+        <div class="telemetry-card" id="telem-cpu-card">
+          <div class="telem-header">
+            <span class="telem-label">App Server CPU</span>
+            <span class="telem-icon">💻</span>
+          </div>
+          <div class="telem-val critical" id="telem-cpu-val">96%</div>
+          <div class="telem-bar">
+            <div class="telem-bar-fill critical" id="telem-cpu-bar" style="width: 96%;"></div>
+          </div>
+          <span class="telem-hint" id="telem-cpu-hint">Event loop throttled</span>
+        </div>
+
+        <div class="telemetry-card" id="telem-pool-card">
+          <div class="telem-header">
+            <span class="telem-label">PostgreSQL Pool</span>
+            <span class="telem-icon">🗄️</span>
+          </div>
+          <div class="telem-val critical" id="telem-pool-val">100 / 100</div>
+          <div class="telem-bar">
+            <div class="telem-bar-fill critical" id="telem-pool-bar" style="width: 100%;"></div>
+          </div>
+          <span class="telem-hint" id="telem-pool-hint">Max connections exhausted</span>
+        </div>
+
+        <div class="telemetry-card" id="telem-latency-card">
+          <div class="telem-header">
+            <span class="telem-label">Latency p99</span>
+            <span class="telem-icon">⏱️</span>
+          </div>
+          <div class="telem-val critical" id="telem-latency-val">8.450 ms</div>
+          <div class="telem-bar">
+            <div class="telem-bar-fill critical" id="telem-latency-bar" style="width: 92%;"></div>
+          </div>
+          <span class="telem-hint" id="telem-latency-hint">Nginx timeout threshold 15s</span>
+        </div>
+
+        <div class="telemetry-card" id="telem-error-card">
+          <div class="telem-header">
+            <span class="telem-label">HTTP 5xx Error Rate</span>
+            <span class="telem-icon">❌</span>
+          </div>
+          <div class="telem-val critical" id="telem-error-val">52.8%</div>
+          <div class="telem-bar">
+            <div class="telem-bar-fill critical" id="telem-error-bar" style="width: 53%;"></div>
+          </div>
+          <span class="telem-hint" id="telem-error-hint">504 Gateway / 500 DB Fatal</span>
+        </div>
+      </div>
+
+      <!-- Investigation & Action Center -->
+      <div class="war-room-stepper">
+        <div class="step-indicator" id="war-step-indicator">
+          <div class="war-step-item active" id="war-step-indicator-1">
+            <span class="step-num">1</span>
+            <span class="step-title">Triase Darurat</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="war-step-item" id="war-step-indicator-2">
+            <span class="step-num">2</span>
+            <span class="step-title">Investigasi Root Cause</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="war-step-item" id="war-step-indicator-3">
+            <span class="step-num">3</span>
+            <span class="step-title">Resolusi Permanen</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="war-step-item" id="war-step-indicator-4">
+            <span class="step-num">4</span>
+            <span class="step-title">Post-Mortem RCA</span>
+          </div>
+        </div>
+
+        <div class="war-step-content" id="war-step-content">
+          <!-- Rendered dynamically by JavaScript -->
+        </div>
+      </div>
     </div>
   </section>
 
@@ -452,6 +569,9 @@
         <button id="btn-reset-tracker" class="btn btn-outline btn-sm">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
           Reset Checklist
+        </button>
+        <button id="btn-claim-certificate-tracker" class="btn btn-outline btn-sm highlight-cert">
+          🎓 Klaim Sertifikat Kesiapan CFK
         </button>
         <button id="btn-check-all-tracker" class="btn btn-primary btn-sm">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
@@ -514,10 +634,49 @@
         <a href="#mental-model">The Core Loop</a>
         <a href="#layers-matrix">7 Layers</a>
         <a href="#chaos-lab">Chaos Lab</a>
+        <a href="#incident-room">War Room RCA</a>
         <a href="#readiness-test">Self Assessment</a>
       </div>
     </div>
   </footer>
+
+  <!-- Certificate Generator Modal -->
+  <div id="certificate-modal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-dialog cert-dialog">
+      <div class="modal-header">
+        <div class="modal-title-box">
+          <span class="modal-badge-icon">🎓</span>
+          <div>
+            <h3 class="modal-heading">Sertifikat Kesiapan Enterprise Systems</h3>
+            <span class="modal-subheading">Core Fundamental Knowledge Verified Credential</span>
+          </div>
+        </div>
+        <button id="close-cert-modal" class="btn-icon" aria-label="Tutup Dialog">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="cert-intro">
+          Sertifikat ini membuktikan penguasaan model mental first-principles, 7 lapisan arsitektur, ACID transaksi, konkurensi, dan teknik mitigasi insiden sistem enterprise. Masukkan nama Anda di bawah:
+        </p>
+        <div class="cert-input-wrapper">
+          <label for="cert-user-name" class="cert-input-label">Nama Penerima Sertifikat:</label>
+          <div class="cert-input-row">
+            <input type="text" id="cert-user-name" class="cert-name-field" placeholder="Nama Lengkap Anda (contoh: Budi Pratama)" value="Rafli Adi Pratama">
+            <button id="btn-update-cert" class="btn btn-primary btn-sm">Perbarui Preview</button>
+          </div>
+        </div>
+        <div class="cert-canvas-box">
+          <canvas id="cert-canvas" width="1200" height="750"></canvas>
+        </div>
+      </div>
+      <div class="modal-footer cert-footer">
+        <button id="btn-download-cert" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Unduh Sertifikat (PNG Resolusi Tinggi)
+        </button>
+        <button id="btn-close-cert-secondary" class="btn btn-outline">Tutup</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast Notification -->
   <div id="toast" class="toast" role="alert" aria-live="polite"></div>

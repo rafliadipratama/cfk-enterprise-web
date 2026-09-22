@@ -14,8 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initLayersAccordion();
   initTop10Cards();
   initChaosLabs();
+  initIncidentRoom();
   initStudyTracker();
   initReadinessQuiz();
+  initCertificateGenerator();
   initDockerCopier();
 });
 
@@ -254,13 +256,15 @@ function initThreeQuestionsWidget() {
    ========================================================================== */
 const milestonesData = [
   { id: 'm1', text: 'Memahami siklus The Core Loop & 6 Atribut Kualitas (ISO 25010)', tag: 'Model Mental' },
-  { id: 'm2', text: 'Mencoba Simulasi Chaos Lab 01: Upload Video Timeout vs Async Queue', tag: 'Simulasi' },
-  { id: 'm3', text: 'Mencoba Simulasi Chaos Lab 02: Race Condition & Pessimistic Lock', tag: 'Simulasi' },
-  { id: 'm4', text: 'Mencoba Simulasi Chaos Lab 03: Database B-Tree Indexing vs Full Scan', tag: 'Simulasi' },
+  { id: 'm2', text: 'Mencoba Chaos Lab 01: Upload Video Timeout vs Async Queue', tag: 'Simulasi' },
+  { id: 'm3', text: 'Mencoba Chaos Lab 02: Concurrency Race Condition & Pessimistic Lock', tag: 'Simulasi' },
+  { id: 'm4', text: 'Mencoba Chaos Lab 03: Database B-Tree Indexing vs Sequential Scan', tag: 'Simulasi' },
+  { id: 'm4b', text: 'Mencoba Chaos Lab 04: Cache Stampede (Thundering Herd) & Singleflight', tag: 'Simulasi' },
+  { id: 'm4c', text: 'Menyelesaikan Simulasi War Room Penanganan Insiden P1 & Terbitkan RCA', tag: 'War Room' },
   { id: 'm5', text: 'Membaca Konsep Kunci Layer 1 (Web/Network) & Layer 2 (Browser Runtime)', tag: '7 Layers' },
   { id: 'm6', text: 'Membaca Konsep Kunci Layer 3 (Server-side) & Layer 4 (Data & ACID)', tag: '7 Layers' },
-  { id: 'm7', text: 'Memahami 10 "Fakta di Balik Framework" pada modul Top 10 CFK', tag: '10 Pilar' },
-  { id: 'm8', text: 'Mengerjakan Uji Kesiapan Mandiri dan mencapai skor minimal 60%', tag: 'Evaluasi' }
+  { id: 'm7', text: 'Mempelajari 10 Contoh Kode Produksi Riil (TypeScript, Go, Python)', tag: '10 Pilar' },
+  { id: 'm8', text: 'Mengerjakan Uji Kesiapan Mandiri dan Mengklaim Sertifikat Kelulusan', tag: 'Evaluasi' }
 ];
 
 function initStudyTracker() {
@@ -727,63 +731,301 @@ function initLayersAccordion() {
 const top10Data = [
   {
     num: 'CFK 01',
-    title: 'HTTP Semantics',
+    title: 'HTTP Semantics & Idempotency',
     desc: 'Metode (Idempotent vs Safe), status code ranges (2xx, 3xx, 4xx, 5xx), headers, content negotiation, dan persistent TCP connections.',
-    frameworkTruth: 'Framework seperti Next.js atau Laravel menyamarkan header & status code lewat fungsi helper; jika tak paham semantik, Anda akan merespon error 500 dengan status 200 OK "Success".'
+    frameworkTruth: 'Framework seperti Next.js atau Laravel menyamarkan header & status code lewat fungsi helper; jika tak paham semantik, Anda akan merespon error 500 dengan status 200 OK "Success".',
+    snippets: {
+      ts: `// Express/TS: Idempotency Key Lock via Redis
+app.post('/api/pay', async (req, res) => {
+  const key = req.headers['idempotency-key'];
+  if (!key) return res.status(400).json({ error: 'Missing Idempotency-Key' });
+  const acquired = await redis.set(\`idem:\${key}\`, '1', 'NX', 'EX', 120);
+  if (!acquired) return res.status(409).json({ error: 'Duplicate request in flight' });
+  const tx = await processPayment(req.body);
+  return res.status(201).json(tx);
+});`,
+      go: `// Go: Idempotency Lock via Redis SET NX
+func PayHandler(w http.ResponseWriter, r *http.Request) {
+    key := r.Header.Get("Idempotency-Key")
+    if key == "" { http.Error(w, "Missing Idempotency-Key", 400); return }
+    ok, _ := rdb.SetNX(ctx, "idem:"+key, "1", 120*time.Second).Result()
+    if !ok {
+        http.Error(w, "Conflict: duplicate request", http.StatusConflict)
+        return
+    }
+    w.WriteHeader(http.StatusCreated)
+}`,
+      py: `# FastAPI: Idempotency Header Dependency
+@app.post("/api/pay", status_code=201)
+async def pay(req: PayRequest, idem_key: str = Header(...)):
+    if not await redis.set(f"idem:{idem_key}", "1", nx=True, ex=120):
+        raise HTTPException(status_code=409, detail="Duplicate request in flight")
+    return {"status": "charge_created"}`
+    }
   },
   {
     num: 'CFK 02',
     title: 'Network & DNS Fundamentals',
     desc: 'Bagaimana hostname diterjemahkan jadi IP, TLS handshake 1.3, TCP Congestion Control, dan latency Round-Trip Time (RTT).',
-    frameworkTruth: 'Banyak engineer menyalahkan backend lambat, padahal latensi 80% berasal dari DNS cold-lookup dan tidak adanya TLS termination di edge/CDN.'
+    frameworkTruth: 'Banyak engineer menyalahkan backend lambat, padahal latensi 80% berasal dari DNS cold-lookup dan tidak adanya TLS termination di edge/CDN.',
+    snippets: {
+      ts: `// Node.js: Persistent HTTP Agent (Connection Pooling)
+import http from 'http';
+const agent = new http.Agent({
+  keepAlive: true,
+  maxSockets: 100,
+  timeout: 5000
+});
+const res = await fetch('https://api.internal/data', { agent });`,
+      go: `// Go: Reusable http.Transport with Connection Pool
+var httpClient = &http.Client{
+    Timeout: 5 * time.Second,
+    Transport: &http.Transport{
+        MaxIdleConns:        100,
+        IdleConnTimeout:     90 * time.Second,
+        TLSHandshakeTimeout: 3 * time.Second,
+    },
+}`,
+      py: `# Python httpx: Persistent Connection Pool
+import httpx
+client = httpx.AsyncClient(
+    limits=httpx.Limits(max_keepalive_connections=50, max_connections=100),
+    timeout=5.0
+)`
+    }
   },
   {
     num: 'CFK 03',
     title: 'Browser & Runtime Model',
     desc: 'Event loop, single-threaded execution, Call Stack, Microtasks (Promises), Macrotasks, dan mekanisme rendering DOM/CSSOM.',
-    frameworkTruth: 'React Virtual DOM hanyalah abstraksi JavaScript; pemahaman sesungguhnya adalah kapan browser melakukan Reflow dan Repaint.'
+    frameworkTruth: 'React Virtual DOM hanyalah abstraksi JavaScript; pemahaman sesungguhnya adalah kapan browser melakukan Reflow dan Repaint.',
+    snippets: {
+      ts: `// Node.js: Worker Thread to prevent event-loop starvation
+import { Worker } from 'worker_threads';
+function hashPasswordAsync(pwd: string): Promise<string> {
+  return new Promise((resolve) => {
+    const worker = new Worker('./hasher.js', { workerData: pwd });
+    worker.on('message', resolve);
+  });
+}`,
+      go: `// Go: Goroutine Worker non-blocking runtime
+go func(pwd string) {
+    hash := computeBcrypt(pwd)
+    hashChan <- hash
+}(password)`,
+      py: `# Python asyncio: Offload heavy compute to executor
+import asyncio
+loop = asyncio.get_running_loop()
+hashed = await loop.run_in_executor(None, compute_heavy_hash, pwd)`
+    }
   },
   {
     num: 'CFK 04',
     title: 'Asynchronous & Concurrency',
     desc: 'Perbedaan mendasar antara I/O-bound (menunggu socket/disk) vs CPU-bound (komputasi intensif), worker threads, dan non-blocking queues.',
-    frameworkTruth: 'Menulis `async/await` bukan berarti kode Anda paralel! Jika Anda memanggil loop synchronous berat, seluruh server non-blocking tetap membeku.'
+    frameworkTruth: 'Menulis async/await bukan berarti kode Anda paralel! Jika Anda memanggil loop synchronous berat, seluruh server non-blocking tetap membeku.',
+    snippets: {
+      ts: `// Node.js BullMQ: Decoupled Job Producer
+import { Queue } from 'bullmq';
+const sttQueue = new Queue('stt_tasks', { connection: redisConn });
+app.post('/transcribe', async (req, res) => {
+  const job = await sttQueue.add('stt_job', { fileUrl: req.body.url });
+  res.status(202).json({ jobId: job.id, status: 'QUEUED' });
+});`,
+      go: `// Go: Buffered Job Channel & Worker Pool
+type Job struct { URL string }
+var jobQueue = make(chan Job, 5000)
+
+func Worker() {
+    for j := range jobQueue {
+        processSTT(j.URL) // Decoupled from HTTP router
+    }
+}`,
+      py: `# FastAPI: Celery Decoupled Task
+@celery_app.task
+def run_stt_task(url: str):
+    return whisper.transcribe(url)
+
+@app.post("/transcribe", status_code=202)
+def transcribe(url: str):
+    task = run_stt_task.delay(url)
+    return {"job_id": task.id, "status": "QUEUED"}`
+    }
   },
   {
     num: 'CFK 05',
-    title: 'State Management',
+    title: 'State Management & Caching',
     desc: 'Ephemeral state di memory vs durable state di database. Mengapa stateless web tier adalah syarat mutlak horizontal scaling.',
-    frameworkTruth: 'State bukan cuma Redux/Zustand di browser. Di sistem enterprise, state adalah konsistensi data antara Redis cache dan PostgreSQL.'
+    frameworkTruth: 'State bukan cuma Redux/Zustand di browser. Di sistem enterprise, state adalah konsistensi data antara Redis cache dan PostgreSQL.',
+    snippets: {
+      ts: `// TypeScript: Cache-Aside with Redis TTL
+async function getProduct(id: string) {
+  const cached = await redis.get(\`prod:\${id}\`);
+  if (cached) return JSON.parse(cached);
+  const data = await db.query('SELECT * FROM products WHERE id = $1', [id]);
+  await redis.set(\`prod:\${id}\`, JSON.stringify(data), 'EX', 300);
+  return data;
+}`,
+      go: `// Go: Cache-Aside Pattern
+func GetProduct(ctx context.Context, id string) (*Product, error) {
+    val, err := rdb.Get(ctx, "prod:"+id).Result()
+    if err == nil { return parseProduct(val), nil }
+    prod, _ := dbQueryProduct(id)
+    rdb.Set(ctx, "prod:"+id, prod.JSON(), 300*time.Second)
+    return prod, nil
+}`,
+      py: `# Python: Cache-Aside Pattern
+async def get_product(id: str):
+    cached = await redis.get(f"prod:{id}")
+    if cached: return json.loads(cached)
+    data = await db.fetch_one("SELECT * FROM products WHERE id = :id", {"id": id})
+    await redis.set(f"prod:{id}", json.dumps(data), ex=300)
+    return data`
+    }
   },
   {
     num: 'CFK 06',
-    title: 'Data & Transaction',
+    title: 'Data & Transactions (ACID)',
     desc: 'Model relasional, transaksi ACID, isolation levels (Read Committed vs Serializable), B-Tree Indexing, dan Connection Pooling.',
-    frameworkTruth: 'ORM (Hibernate/Prisma/TypeORM) menyembunyikan query SQL mentah; tanpa paham transaksi dan index, ORM akan memicu masalah query N+1 dan deadlock.'
+    frameworkTruth: 'ORM (Hibernate/Prisma/TypeORM) menyembunyikan query SQL mentah; tanpa paham transaksi dan index, ORM akan memicu masalah query N+1 dan deadlock.',
+    snippets: {
+      ts: `// Knex/Postgres: SELECT ... FOR UPDATE (Row Lock)
+await knex.transaction(async (trx) => {
+  const acc = await trx('accounts').where('id', accountId).forUpdate().first();
+  if (acc.balance < amount) throw new Error('Insufficient balance');
+  await trx('accounts').where('id', accountId).decrement('balance', amount);
+});`,
+      go: `// Go: sql.Tx Pessimistic Row Lock
+tx, _ := db.BeginTx(ctx, nil)
+defer tx.Rollback()
+var bal int64
+tx.QueryRowContext(ctx, "SELECT balance FROM accounts WHERE id=$1 FOR UPDATE", id).Scan(&bal)
+if bal < amt { return ErrInsufficient }
+tx.ExecContext(ctx, "UPDATE accounts SET balance = balance - $1 WHERE id=$2", amt, id)
+tx.Commit()`,
+      py: `# SQLAlchemy: with_for_update() Row Lock
+with Session.begin() as session:
+    acc = session.query(Account).with_for_update().filter_by(id=acc_id).one()
+    if acc.balance < amount:
+        raise ValueError("Insufficient balance")
+    acc.balance -= amount`
+    }
   },
   {
     num: 'CFK 07',
-    title: 'API & Contract',
+    title: 'API & Contract (Boundary)',
     desc: 'REST vs gRPC, skema validasi (JSON Schema/Protobuf), backward compatibility, versioning, dan semantik error payload.',
-    frameworkTruth: 'API bukan sekadar endpoint URL sembarangan. Ini adalah kontrak hukum antara client dan server yang tidak boleh rusak saat deployment.'
+    frameworkTruth: 'API bukan sekadar endpoint URL sembarangan. Ini adalah kontrak hukum antara client dan server yang tidak boleh rusak saat deployment.',
+    snippets: {
+      ts: `// Zod Schema Validation (Fail fast at boundary)
+import { z } from 'zod';
+const CreateUserSchema = z.object({
+  email: z.string().email(),
+  role: z.enum(['USER', 'ADMIN'])
+});
+const validated = CreateUserSchema.parse(req.body);`,
+      go: `// Go: Struct Validation with go-playground/validator
+type UserPayload struct {
+    Email string \`json:"email" validate:"required,email"\`
+    Role  string \`json:"role" validate:"required,oneof=USER ADMIN"\`
+}
+if err := validate.Struct(payload); err != nil {
+    return http.StatusBadRequest
+}`,
+      py: `# FastAPI / Pydantic Boundary Schema
+from pydantic import BaseModel, EmailStr
+from typing import Literal
+
+class UserSchema(BaseModel):
+    email: EmailStr
+    role: Literal['USER', 'ADMIN']`
+    }
   },
   {
     num: 'CFK 08',
-    title: 'Software Architecture & Modularity',
+    title: 'Architecture & Modularity',
     desc: 'Separation of Concerns (SoC), Layering (Controller-Service-Repo), Dependency Inversion, dan isolasi domain boundaries.',
-    frameworkTruth: 'Framework sering menyodorkan struktur folder default; arsitek sejati mengatur boundary domain agar sistem mudah dites tanpa database aktif.'
+    frameworkTruth: 'Framework sering menyodorkan struktur folder default; arsitek sejati mengatur boundary domain agar sistem mudah dites tanpa database aktif.',
+    snippets: {
+      ts: `// TS: Interface-based Repository (Decoupled from ORM)
+interface OrderRepository {
+  save(order: Order): Promise<void>;
+}
+class OrderService {
+  constructor(private repo: OrderRepository) {}
+  async checkout(order: Order) { await this.repo.save(order); }
+}`,
+      go: `// Go: Interface defined at consumption site
+type OrderRepository interface {
+    Save(ctx context.Context, order *Order) error
+}
+type OrderService struct {
+    repo OrderRepository
+}
+func (s *OrderService) Checkout(ctx context.Context, o *Order) error {
+    return s.repo.Save(ctx, o)
+}`,
+      py: `# Python Protocol / Abstract Dependency Inversion
+from typing import Protocol
+
+class OrderRepository(Protocol):
+    async def save(self, order: Order) -> None: ...
+
+class OrderService:
+    def __init__(self, repo: OrderRepository):
+        self.repo = repo`
+    }
   },
   {
     num: 'CFK 09',
     title: 'Security & Trust Boundaries',
     desc: 'Zero-Trust, Sanitasi input di server, OWASP Top 10, AuthN vs AuthZ, Token lifecycle (Access/Refresh), dan CSRF/CORS.',
-    frameworkTruth: 'Validasi form di frontend (HTML5/React) semata-mata untuk UX. Batas keamanan sesungguhnya ada di server middleware.'
+    frameworkTruth: 'Validasi form di frontend (HTML5/React) semata-mata untuk UX. Batas keamanan sesungguhnya ada di server middleware.',
+    snippets: {
+      ts: `// Parameterized Query (Never concatenate raw strings!)
+// BAD:  db.raw(\`SELECT * FROM users WHERE id = '\${req.query.id}'\`)
+// GOOD:
+const user = await db.query(
+  'SELECT id, name FROM users WHERE id = $1',
+  [req.query.id]
+);`,
+      go: `// Go: Parameterized Query Placeholder
+// BAD:  db.Query("SELECT * FROM users WHERE id = '" + id + "'")
+// GOOD:
+row := db.QueryRowContext(ctx, "SELECT id, name FROM users WHERE id = $1", id)`,
+      py: `# Python asyncpg: Parameterized query placeholder
+# BAD:  await db.execute(f"SELECT * FROM users WHERE id = '{id}'")
+# GOOD:
+row = await db.fetch_row("SELECT id, name FROM users WHERE id = $1", id)`
+    }
   },
   {
     num: 'CFK 10',
     title: 'Software Quality & Observability',
     desc: 'Tiga pilar observabilitas: Metrics, Structured Logs, Distributed Tracing (TraceID & SpanID), serta penanganan failure (Timeout & Retry).',
-    frameworkTruth: 'Membaca log di production bukan mencari `console.log("here")`, melainkan melacak Trace ID yang menembus 5 service berbeda secara real-time.'
+    frameworkTruth: 'Membaca log di production bukan mencari console.log("here"), melainkan melacak Trace ID yang menembus 5 service berbeda secara real-time.',
+    snippets: {
+      ts: `// Winston/Pino: Structured JSON Log with TraceID
+logger.info({
+  event: 'payment_processed',
+  traceId: req.headers['x-trace-id'] || generateTraceId(),
+  userId: user.id,
+  durationMs: 42.5
+});`,
+      go: `// Go: slog Structured Logger with Trace Context
+slog.InfoContext(ctx, "payment_processed",
+    "trace_id", ctx.Value("trace_id"),
+    "user_id", user.ID,
+    "duration_ms", 42.5,
+)`,
+      py: `# Python structlog / JSON Logging with Context
+structlog.get_logger().info(
+    "payment_processed",
+    trace_id=request.headers.get("x-trace-id"),
+    user_id=user.id,
+    duration_ms=42.5
+)`
+    }
   }
 ];
 
@@ -791,8 +1033,15 @@ function initTop10Cards() {
   const container = document.getElementById('top-10-grid');
   if (!container) return;
 
-  container.innerHTML = top10Data.map(c => `
-    <div class="cfk-card">
+  function escapeCode(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  container.innerHTML = top10Data.map((c, idx) => `
+    <div class="cfk-card" data-card-index="${idx}">
       <div>
         <div class="cfk-top">
           <span class="cfk-badge">${c.num}</span>
@@ -805,8 +1054,59 @@ function initTop10Cards() {
         <span class="truth-label">💡 Fakta di Balik Framework</span>
         ${c.frameworkTruth}
       </div>
+      <div class="cfk-code-section">
+        <div class="code-tabs-header">
+          <span class="code-title">Kode Produksi:</span>
+          <div class="code-lang-pills">
+            <button class="lang-pill active" data-lang="ts">TS / Node</button>
+            <button class="lang-pill" data-lang="go">Go</button>
+            <button class="lang-pill" data-lang="py">Python</button>
+          </div>
+        </div>
+        <div class="code-block-wrapper">
+          <pre><code class="code-pane lang-ts">${escapeCode(c.snippets.ts)}</code><code class="code-pane lang-go" style="display:none;">${escapeCode(c.snippets.go)}</code><code class="code-pane lang-py" style="display:none;">${escapeCode(c.snippets.py)}</code></pre>
+          <button class="btn-copy-code" title="Salin Kode">Salin</button>
+        </div>
+      </div>
     </div>
   `).join('');
+
+  // Attach event listeners for language tabs
+  container.querySelectorAll('.cfk-card').forEach(card => {
+    const pills = card.querySelectorAll('.lang-pill');
+    const panes = card.querySelectorAll('.code-pane');
+    const copyBtn = card.querySelector('.btn-copy-code');
+
+    pills.forEach(pill => {
+      pill.addEventListener('click', () => {
+        const lang = pill.getAttribute('data-lang');
+        pills.forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+
+        panes.forEach(pane => {
+          if (pane.classList.contains(`lang-${lang}`)) {
+            pane.style.display = 'block';
+          } else {
+            pane.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    if (copyBtn) {
+      copyBtn.addEventListener('click', async () => {
+        const activePane = Array.from(panes).find(p => p.style.display !== 'none');
+        if (activePane) {
+          try {
+            await navigator.clipboard.writeText(activePane.textContent);
+            showToast('Kode contoh berhasil disalin! 📋');
+          } catch (e) {
+            showToast('Kode contoh disalin! 📋');
+          }
+        }
+      });
+    }
+  });
 }
 
 /* ==========================================================================
@@ -1040,10 +1340,92 @@ const labDefinitions = {
           setStatus('success', '1.14 ms (Optimal O(log N))');
           setInsight(`
             <strong>Keajaiban B-Tree Index:</strong><br>
-            Dengan struktur B-Tree, database tidak perlu membaca 1 juta data. Cukup menavigasi cabang pohon setinggi 3-4 lompatan $\\mathcal{O}(\\log N)$.<br>
+            Dengan struktur B-Tree, database tidak perlu membaca 1 juta data. Cukup menavigasi cabang pohon setinggi 3-4 lompatan O(log N).<br>
             Latensi turun dari hampir setengah detik menjadi 1 milidetik!
           `);
         }, 1400);
+      }
+    }
+  },
+
+  'cache-stampede': {
+    title: 'Kasus Cache: Cache Stampede (Thundering Herd) & Connection Exhaustion',
+    desc: 'Key cache "flash_sale_items" baru saja expired (TTL habis). Tiba-tiba 5.000 user merequest data tersebut di detik yang sama. Saksikan bagaimana database connection pool ambruk jika tidak ada Singleflight Mutex!',
+    modes: [
+      { id: 'stampede', label: '❌ Mode A: Naive Cache Miss (Thundering Herd)', isDanger: true },
+      { id: 'singleflight', label: '✅ Mode B: Singleflight Mutex / Lock', isDanger: false }
+    ],
+    renderParams: (mode) => `
+      <div class="param-row">
+        <span>Beban Request Masuk:</span>
+        <span class="param-value">5.000 Concurrent Requests / dtk</span>
+      </div>
+      <div class="param-row">
+        <span>Status Cache Redis:</span>
+        <span class="param-value" style="color: var(--accent-rose); font-weight:700;">TTL EXPIRED (Cache Miss 100%)</span>
+      </div>
+      <div class="param-row">
+        <span>Batas Connection Pool DB:</span>
+        <span class="param-value">50 Max Connections</span>
+      </div>
+      <div class="param-row">
+        <span>Strategi Handler:</span>
+        <span class="param-value">${mode === 'stampede' ? 'Semua request langsung query PostgreSQL' : 'Singleflight Group (Hanya 1 in-flight DB query)'}</span>
+      </div>
+    `,
+    runSimulation: (mode, logger, setProgress, setStatus, setInsight) => {
+      logger.clear();
+      setStatus('running', 'Memproses lonjakan 5.000 request...');
+      setProgress(0);
+
+      logger.info('[T0.00ms] ⚡ 5.000 concurrent request masuk ke GET /api/v1/flash-sale...');
+      logger.warn('[T0.02ms] ⚠️ Redis: Key "flash_sale_items" NOT FOUND (Expired TTL)!');
+
+      if (mode === 'stampede') {
+        setTimeout(() => {
+          logger.error('[T0.10ms] 💥 Thundering Herd: 5.000 thread aplikasi serentak memanggil DB: SELECT * FROM items WHERE is_promo = true');
+          logger.error('[T0.25ms] 🚨 PostgreSQL Connection Pool: 50/50 koneksi langsung TERPAKAI PENUH!');
+          logger.error('[T0.40ms] ⚠️ 4.950 request lainnya terjebak dalam antrean tunggu socket pool...');
+          setProgress(50);
+        }, 800);
+
+        setTimeout(() => {
+          logger.warn('[T1.20s] ⏳ CPU Database Server melonjak ke 100%!');
+          logger.error('[T3.50s] 💥 Database Driver Timeout: "FATAL: connection pool exhausted (timeout after 3000ms)"');
+          logger.error('[T3.80s] 🔴 Nginx Gateway: 504 Gateway Timeout dikirimkan ke ribuan user!');
+          logger.error('[T4.00s] ❌ HASIL FATAL: 96% request GAGAL total. Kerugian omset flash sale!');
+          setProgress(100, true);
+          setStatus('fail', 'Pool Exhaustion: 504 Gateway Timeout');
+          setInsight(`
+            <strong>Akar Masalah Cache Stampede (Thundering Herd):</strong><br>
+            1. Ketika key populer expired, ribuan thread aplikasi serentak mengalami <em>cache miss</em>.<br>
+            2. Seluruh thread tersebut berebut menembak database untuk mengkalkulasi ulang data yang sama persis.<br>
+            3. Akibatnya, connection pool database langsung jenuh (<em>exhausted</em>), CPU 100%, dan server web tumbang berjamaah.
+          `);
+        }, 2200);
+
+      } else {
+        setTimeout(() => {
+          logger.info('[T0.05ms] 🔒 Singleflight Mutex: Request #1 mengambil hak eksklusif mengisi cache.');
+          logger.info('[T0.08ms] 🛡️ 4.999 request lainnya menahan panggilan dan mendaftar ke listener channel yang sama.');
+          logger.info('[T0.12ms] 💾 PostgreSQL: Menerima TEPAT 1 QUERY SAJA dari Request #1 (Pool 1/50).');
+          setProgress(50);
+        }, 800);
+
+        setTimeout(() => {
+          logger.info('[T0.28ms] ⚡ Database mengembalikan hasil promo items (Latency: 8.2ms).');
+          logger.info('[T0.30ms] 🔑 Singleflight: Hasil disimpan kembali ke Redis (SETEX flash_sale_items 300).');
+          logger.success('[T0.32ms] 📢 Singleflight: Hasil di-broadcast ke 4.999 request yang menunggu di memory.');
+          logger.success('[T0.35ms] ✅ 5.000 / 5.000 Request SUKSES! HTTP/2 200 OK (Avg latency: 12ms, DB CPU: 3%).');
+          setProgress(100);
+          setStatus('success', '100% Sukses: 1 Query ke DB (Zero Pool Starvation)');
+          setInsight(`
+            <strong>Kemenangan Singleflight / Mutex Pattern:</strong><br>
+            1. <em>Request Collapsing</em>: Berapa pun jumlah request paralel yang datang saat cache miss, hanya <strong>1 query nyata</strong> yang dikirim ke database.<br>
+            2. Request lainnya menunggu promise/channel dari request pertama dan menerima data hasil cache secara simultan.<br>
+            3. Database tetap santai (1 koneksi terpakai dari 50), dan seluruh 5.000 user mendapatkan respon dalam belasan milidetik!
+          `);
+        }, 2200);
       }
     }
   }
@@ -1189,6 +1571,383 @@ function renderLab() {
 
     lab.runSimulation(currentLabMode, logger, setProgress, setStatus, setInsight);
   });
+}
+
+/* ==========================================================================
+   5.5. Incident War Room Simulator (Root Cause Analysis Game)
+   ========================================================================== */
+const incidentState = {
+  currentStep: 1,
+  cpu: 96,
+  pool: 100,
+  latency: 8450,
+  errorRate: 52.8,
+  status: 'critical',
+  triageSelected: null,
+  fixSelected: null
+};
+
+function initIncidentRoom() {
+  const contentContainer = document.getElementById('war-step-content');
+  if (!contentContainer) return;
+
+  renderIncidentStep(1);
+}
+
+function updateIncidentTelemetry(cpu, pool, latency, errorRate, isHealthy = false) {
+  incidentState.cpu = cpu;
+  incidentState.pool = pool;
+  incidentState.latency = latency;
+  incidentState.errorRate = errorRate;
+
+  const cpuVal = document.getElementById('telem-cpu-val');
+  const cpuBar = document.getElementById('telem-cpu-bar');
+  const cpuCard = document.getElementById('telem-cpu-card');
+  const poolVal = document.getElementById('telem-pool-val');
+  const poolBar = document.getElementById('telem-pool-bar');
+  const poolCard = document.getElementById('telem-pool-card');
+  const latVal = document.getElementById('telem-latency-val');
+  const latBar = document.getElementById('telem-latency-bar');
+  const latCard = document.getElementById('telem-latency-card');
+  const errVal = document.getElementById('telem-error-val');
+  const errBar = document.getElementById('telem-error-bar');
+  const errCard = document.getElementById('telem-error-card');
+  const banner = document.getElementById('incident-banner');
+  const bannerTitle = document.getElementById('incident-status-title');
+  const bannerDesc = document.getElementById('incident-status-desc');
+  const badge = document.getElementById('incident-severity-badge');
+
+  if (cpuVal) {
+    cpuVal.textContent = `${cpu}%`;
+    cpuBar.style.width = `${cpu}%`;
+    cpuVal.className = `telem-val ${isHealthy ? 'healthy' : 'critical'}`;
+    cpuBar.className = `telem-bar-fill ${isHealthy ? 'healthy' : 'critical'}`;
+    if (cpuCard) cpuCard.className = `telemetry-card ${isHealthy ? 'healthy' : 'critical'}`;
+  }
+
+  if (poolVal) {
+    poolVal.textContent = `${pool} / 100`;
+    poolBar.style.width = `${pool}%`;
+    poolVal.className = `telem-val ${isHealthy ? 'healthy' : 'critical'}`;
+    poolBar.className = `telem-bar-fill ${isHealthy ? 'healthy' : 'critical'}`;
+    if (poolCard) poolCard.className = `telemetry-card ${isHealthy ? 'healthy' : 'critical'}`;
+  }
+
+  if (latVal) {
+    latVal.textContent = `${latency} ms`;
+    latBar.style.width = `${Math.min(100, Math.round((latency / 9000) * 100))}%`;
+    latVal.className = `telem-val ${isHealthy ? 'healthy' : 'critical'}`;
+    latBar.className = `telem-bar-fill ${isHealthy ? 'healthy' : 'critical'}`;
+    if (latCard) latCard.className = `telemetry-card ${isHealthy ? 'healthy' : 'critical'}`;
+  }
+
+  if (errVal) {
+    errVal.textContent = `${errorRate}%`;
+    errBar.style.width = `${Math.min(100, Math.round(errorRate * 2))}%`;
+    errVal.className = `telem-val ${isHealthy ? 'healthy' : 'critical'}`;
+    errBar.className = `telem-bar-fill ${isHealthy ? 'healthy' : 'critical'}`;
+    if (errCard) errCard.className = `telemetry-card ${isHealthy ? 'healthy' : 'critical'}`;
+  }
+
+  if (banner) {
+    if (isHealthy) {
+      banner.classList.add('recovered');
+      bannerTitle.textContent = 'STATUS: OPERATIONAL — Sistem Normal & Terlindungi';
+      bannerDesc.textContent = 'Semua metrik kembali hijau. Latensi p99 < 35ms, Database Pool aman.';
+      badge.textContent = 'RECOVERED';
+      badge.className = 'banner-badge recovered';
+    } else {
+      banner.classList.remove('recovered');
+      bannerTitle.textContent = 'STATUS: P1 CRITICAL OUTAGE — Flash Sale Checkout Stalled';
+      bannerDesc.textContent = 'Active Alert: HTTP 504 Spiking, Database Connection Pool Saturated (100/100)';
+      badge.textContent = 'SEVERITY 1';
+      badge.className = 'banner-badge critical';
+    }
+  }
+}
+
+function updateWarStepIndicators(activeStep) {
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById(`war-step-indicator-${i}`);
+    if (!el) continue;
+    el.classList.remove('active', 'done');
+    if (i === activeStep) {
+      el.classList.add('active');
+    } else if (i < activeStep) {
+      el.classList.add('done');
+    }
+  }
+}
+
+function renderIncidentStep(step) {
+  incidentState.currentStep = step;
+  updateWarStepIndicators(step);
+  const container = document.getElementById('war-step-content');
+  if (!container) return;
+
+  if (step === 1) {
+    // Phase 1: Triage
+    container.innerHTML = `
+      <div class="triage-intro">
+        <h4>Fase 1: Triase Darurat (Stop the Bleeding)</h4>
+        <p>Traffic promo flash sale mencapai 15.000 req/detik. Database Connection Pool PostgreSQL telah jenuh 100/100, p99 latency 8,45s, dan 52% request user gagal dengan status HTTP 504. Apa aksi triase darurat pertama Anda?</p>
+      </div>
+
+      <div class="triage-options-grid">
+        <div class="triage-card" data-triage="restart-db">
+          <div class="triage-card-header">
+            <h5>Aksi A: Restart Server PostgreSQL</h5>
+            <span class="triage-badge">Infrastruktur</span>
+          </div>
+          <p>Lakukan restart paksa instance database agar semua koneksi lama terputus dan memori RAM bersih seketika.</p>
+        </div>
+
+        <div class="triage-card" data-triage="scale-pods">
+          <div class="triage-card-header">
+            <h5>Aksi B: Auto-Scale Web Pods (+10 Instance)</h5>
+            <span class="triage-badge">Komputasi</span>
+          </div>
+          <p>Tingkatkan kapasitas server aplikasi web dari 4 pod menjadi 14 pod untuk menampung traffic request yang membludak.</p>
+        </div>
+
+        <div class="triage-card" data-triage="rate-limit">
+          <div class="triage-card-header">
+            <h5>Aksi C: Edge Rate Limiter & Degrade Non-Critical</h5>
+            <span class="triage-badge">Batas Jaringan</span>
+          </div>
+          <p>Aktifkan shedding load di Nginx/Cloudflare (rate limit 5 req/user), dan matikan sementara fitur rekomendasi & search non-esensial.</p>
+        </div>
+      </div>
+
+      <div class="triage-feedback-box" id="triage-feedback"></div>
+
+      <div style="display: flex; justify-content: flex-end;">
+        <button id="btn-next-war-step" class="btn btn-primary" style="display: none;">
+          Lanjut ke Fase 2: Investigasi Root Cause &rarr;
+        </button>
+      </div>
+    `;
+
+    const cards = container.querySelectorAll('.triage-card');
+    const feedback = document.getElementById('triage-feedback');
+    const nextBtn = document.getElementById('btn-next-war-step');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        cards.forEach(c => c.classList.remove('selected-correct', 'selected-wrong'));
+        const choice = card.getAttribute('data-triage');
+
+        if (choice === 'restart-db') {
+          card.classList.add('selected-wrong');
+          feedback.className = 'triage-feedback-box error show';
+          feedback.innerHTML = `
+            <strong>❌ Keputusan Fatal!</strong><br>
+            Merestart database di tengah lonjakan traffic memutus transaksi aktif di tengah jalan (data in-flight korup). Detik pertama database hidup kembali, ribuan koneksi dari Nginx langsung menyerbu kembali dan database crash seketika dalam loop kegagalan!
+          `;
+          updateIncidentTelemetry(98, 100, 9200, 78.4, false);
+          nextBtn.style.display = 'none';
+        } else if (choice === 'scale-pods') {
+          card.classList.add('selected-wrong');
+          feedback.className = 'triage-feedback-box error show';
+          feedback.innerHTML = `
+            <strong>❌ Kondisi Makin Memburuk!</strong><br>
+            Akar masalah ada di database connection pool. Menambah 10 pod web baru berarti membuka 10 x 20 = 200 koneksi baru ke database yang sudah sekarat. Database langsung mengalami OOM (Out Of Memory) Crash!
+          `;
+          updateIncidentTelemetry(99, 100, 11000, 89.2, false);
+          nextBtn.style.display = 'none';
+        } else if (choice === 'rate-limit') {
+          card.classList.add('selected-correct');
+          feedback.className = 'triage-feedback-box success show';
+          feedback.innerHTML = `
+            <strong>✅ Tepat Sekali! (First-Principles Triage)</strong><br>
+            Saat sistem saturasi, tindakan pertama adalah <em>shed load</em> (menghentikan pendarahan). Dengan menahan request liar di edge gateway dan mematikan rute non-kritis, traffic yang menembus ke database berkurang 60%. Database kembali punya ruang bernapas.
+          `;
+          updateIncidentTelemetry(64, 68, 1850, 12.0, false);
+          nextBtn.style.display = 'inline-flex';
+          nextBtn.addEventListener('click', () => renderIncidentStep(2));
+        }
+      });
+    });
+
+  } else if (step === 2) {
+    // Phase 2: Root Cause Investigation
+    container.innerHTML = `
+      <div class="triage-intro">
+        <h4>Fase 2: Investigasi Root Cause (Slow Query & Profiler)</h4>
+        <p>Sistem sudah stabil sementara berkat rate limiter. Sekarang mari kita cari tahu mengapa 1 database pool bisa habis total padahal server baru menerima 15.000 req/detik. Buka log profil query:</p>
+      </div>
+
+      <div class="slow-query-box">
+        <span class="comment">-- LOG TELEMETRI DATABASE: pg_stat_activity & slow_query.log</span><br>
+        <span class="keyword">LOG:</span> duration: <span class="highlight-val">7.842 ms</span> execute &lt;unnamed&gt;:<br>
+        <span class="keyword">SELECT</span> * <span class="keyword">FROM</span> orders<br>
+        <span class="keyword">WHERE</span> user_id = <span class="highlight-val">'usr_8892'</span> <span class="keyword">AND</span> status = <span class="highlight-val">'PENDING'</span><br>
+        <span class="keyword">ORDER BY</span> created_at <span class="keyword">DESC</span>;<br><br>
+        <span class="comment">-- EXPLAIN ANALYZE OUTPUT:</span><br>
+        -&gt; <span class="keyword" style="color:#fb7185;">Seq Scan on orders</span> (cost=0.00..89240.12 rows=1 width=248) (actual time=7840.12..7842.30 rows=1 loops=1)<br>
+        &nbsp;&nbsp;&nbsp;Filter: ((status = 'PENDING') AND (user_id = 'usr_8892'))<br>
+        &nbsp;&nbsp;&nbsp;<span style="color:#fb7185; font-weight:700;">Rows Removed by Filter: 4.182.930 baris dipindai tanpa INDEX!</span><br>
+        Total Runtime: <span class="highlight-val">7.842 ms</span><br><br>
+        <span class="comment">-- APPLICATION CONNECTION POOL LEAK TRACE:</span><br>
+        <span class="keyword">WARN:</span> Connection #34 acquired at CheckoutController.ts:48 was <span style="color:#fb7185; font-weight:700;">NEVER RELEASED</span> back to pool because payment error bypassed try/finally block!
+      </div>
+
+      <div class="triage-feedback-box success show">
+        <strong>Temuan Investigasi:</strong><br>
+        1. <strong>Missing Composite Index</strong>: Query checkout memindai 4,1 juta baris tabel <code>orders</code> secara berurutan (Sequential Scan) setiap kali user mengecek status.<br>
+        2. <strong>Connection Pool Leak</strong>: Blok kode exception handler di controller tidak membungkus <code>conn.release()</code> di dalam <code>finally</code>, sehingga koneksi menggantung selamanya.
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button id="btn-back-step-1" class="btn btn-outline">&larr; Kembali</button>
+        <button id="btn-step-3" class="btn btn-primary">Lanjut ke Fase 3: Resolusi Permanen &rarr;</button>
+      </div>
+    `;
+
+    document.getElementById('btn-back-step-1').addEventListener('click', () => renderIncidentStep(1));
+    document.getElementById('btn-step-3').addEventListener('click', () => renderIncidentStep(3));
+
+  } else if (step === 3) {
+    // Phase 3: Permanent Resolution
+    container.innerHTML = `
+      <div class="triage-intro">
+        <h4>Fase 3: Eksekusi Perbaikan Permanen (Permanent Fix)</h4>
+        <p>Anda telah mengidentifikasi 2 akar masalah fatal. Pilih paket hotfix yang harus segera di-deploy ke production:</p>
+      </div>
+
+      <div class="triage-options-grid">
+        <div class="triage-card" data-fix="nosql">
+          <div class="triage-card-header">
+            <h5>Solusi A: Migrasi Database ke NoSQL / MongoDB</h5>
+            <span class="triage-badge">Arsitektur Radikal</span>
+          </div>
+          <p>Ganti database relasional ke dokumen NoSQL karena dipercaya lebih cepat menangani traffic besar.</p>
+        </div>
+
+        <div class="triage-card" data-fix="index-pool">
+          <div class="triage-card-header">
+            <h5>Solusi B: Index Concurrently + Connection Pool Guard</h5>
+            <span class="triage-badge">First-Principles Fix</span>
+          </div>
+          <p>Jalankan <code>CREATE INDEX CONCURRENTLY idx_orders_user_status ON orders(user_id, status);</code> dan perbaiki connection release dengan block <code>try/finally</code> & timeout 2 detik.</p>
+        </div>
+      </div>
+
+      <div class="triage-feedback-box" id="fix-feedback"></div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+        <button id="btn-back-step-2" class="btn btn-outline">&larr; Kembali</button>
+        <button id="btn-step-4" class="btn btn-primary" style="display: none;">Lihat Laporan Post-Mortem RCA &rarr;</button>
+      </div>
+    `;
+
+    const cards = container.querySelectorAll('.triage-card');
+    const feedback = document.getElementById('fix-feedback');
+    const nextBtn = document.getElementById('btn-step-4');
+
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        cards.forEach(c => c.classList.remove('selected-correct', 'selected-wrong'));
+        const fix = card.getAttribute('data-fix');
+
+        if (fix === 'nosql') {
+          card.classList.add('selected-wrong');
+          feedback.className = 'triage-feedback-box error show';
+          feedback.innerHTML = `
+            <strong>❌ Keputusan Tidak Tepat!</strong><br>
+            Migrasi ke NoSQL tidak menyelesaikan masalah indexing buruk dan transaksi atomik checkout. Selain memakan waktu berminggu-minggu, Anda akan kehilangan garansi ACID untuk transaksi keuangan!
+          `;
+          nextBtn.style.display = 'none';
+        } else if (fix === 'index-pool') {
+          card.classList.add('selected-correct');
+          feedback.className = 'triage-feedback-box success show';
+          feedback.innerHTML = `
+            <strong>🎉 Kemenangan Sempurna! Sistem Pulih 100%!</strong><br>
+            Index <code>CONCURRENTLY</code> dibuat tanpa mengunci tabel. Latensi query langsung turun dari 7.840ms ke 1,2ms! Koneksi yang bocor tertutup rapi oleh blok <code>try/finally</code>.
+          `;
+          // Animate recovery
+          updateIncidentTelemetry(16, 12, 26, 0.0, true);
+          nextBtn.style.display = 'inline-flex';
+          nextBtn.addEventListener('click', () => renderIncidentStep(4));
+        }
+      });
+    });
+
+    document.getElementById('btn-back-step-2').addEventListener('click', () => renderIncidentStep(2));
+
+  } else if (step === 4) {
+    // Phase 4: Post-Mortem Report
+    const rcaMarkdown = generatePostMortemMarkdown();
+    container.innerHTML = `
+      <div class="triage-intro">
+        <h4>Fase 4: Laporan Resmi Post-Mortem (Root Cause Analysis)</h4>
+        <p>Insiden berhasil dimitigasi dan diatasi sepenuhnya dalam 22 menit. Di perusahaan teknologi kelas dunia, setiap insiden besar wajib diakhiri dengan <em>Blameless Post-Mortem</em> untuk pembelajaran tim engineering:</p>
+      </div>
+
+      <div class="postmortem-container" id="postmortem-text">${escapeHtml(rcaMarkdown)}</div>
+
+      <div style="display: flex; gap: 0.75rem; justify-content: flex-end; flex-wrap: wrap;">
+        <button id="btn-copy-rca" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+          Salin Dokumen RCA (Markdown)
+        </button>
+        <button id="btn-restart-war-room" class="btn btn-outline">
+          🔄 Ulangi Simulasi War Room
+        </button>
+      </div>
+    `;
+
+    document.getElementById('btn-copy-rca').addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(rcaMarkdown);
+        showToast('Laporan RCA berhasil disalin ke clipboard! 📋');
+      } catch (e) {
+        showToast('Laporan RCA disalin! 📋');
+      }
+    });
+
+    document.getElementById('btn-restart-war-room').addEventListener('click', () => {
+      updateIncidentTelemetry(96, 100, 8450, 52.8, false);
+      renderIncidentStep(1);
+    });
+  }
+}
+
+function generatePostMortemMarkdown() {
+  return `# INCIDENT POST-MORTEM REPORT (RCA)
+## Insiden P1: Flash Sale Checkout Outage & Database Pool Saturated
+
+- **Status**: RESOLVED (Blameless RCA)
+- **Tanggal Insiden**: 22 September 2026, 02:15 WIB - 02:37 WIB (Durasi: 22 Menit)
+- **Incident Commander**: On-Call Principal Systems Engineer
+- **Impact**: ~14.200 transaksi tertunda, p99 latensi melonjak ke 8.450ms, 52.8% request gagal dengan HTTP 504.
+
+### 1. Root Cause Summary (Akar Masalah)
+Insiden disebabkan oleh kombinasi dua faktor fundamental:
+1. **Missing Composite Index**: Endpoint pengecekan status pesanan melakukan Sequential Scan terhadap 4,18 juta baris tabel 'orders', menghabiskan CPU database dan menahan koneksi selama 7.840ms per query.
+2. **Connection Pool Leak**: Error handling di controller tidak mengeksekusi 'conn.release()' di dalam blok 'finally', sehingga koneksi database tidak pernah dikembalikan ke pool.
+
+### 2. Timeline Kejadian
+- **02:15 WIB**: Promo flash sale aktif, traffic melonjak ke 15.000 req/detik.
+- **02:17 WIB**: Alert Prometheus menembak P1 Alert: Database Pool 100% Saturated.
+- **02:19 WIB**: On-Call mengaktifkan Edge Rate Limiter di Nginx & mematikan fitur non-kritis (Load Shedding).
+- **02:24 WIB**: Slow query log mengidentifikasi query 'SELECT ... FROM orders' tanpa index composite.
+- **02:29 WIB**: Eksekusi 'CREATE INDEX CONCURRENTLY idx_orders_user_status ON orders(user_id, status)'.
+- **02:33 WIB**: Hotfix deployment try/finally connection release & pool acquire timeout (2000ms).
+- **02:37 WIB**: Semua metrik kembali normal (CPU 16%, Latensi 26ms, Error 0.0%). Insiden ditutup.
+
+### 3. Tindakan Pencegahan Jangka Panjang (Action Items)
+1. Pasang CI Lint check untuk melarang perolehan DB connection tanpa 'try/finally' atau 'using' scope.
+2. Pasang automated slow query alert untuk query dengan execution time > 200ms di staging.
+3. Terapkan Singleflight / Request Collapsing pada query read-heavy yang sering diakses bersamaan.
+`;
+}
+
+function escapeHtml(str) {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 }
 
 /* ==========================================================================
@@ -1354,11 +2113,25 @@ function renderQuizResult() {
       <div style="max-width: 580px; margin: 0 auto 2rem; background: var(--bg-surface-elevated); padding: 1.25rem; border-radius: var(--radius-md); border-left: 4px solid var(--accent-cyan); text-align: left; font-size: 0.92rem; color: var(--text-muted); line-height: 1.6;">
         ${advice}
       </div>
-      <button class="btn btn-primary" onclick="location.reload()">
-        Ulangi Evaluasi
-      </button>
+      <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+        <button class="btn btn-primary" id="btn-claim-cert-quiz">
+          🎓 Terbitkan Sertifikat Kelulusan
+        </button>
+        <button class="btn btn-outline" onclick="location.reload()">
+          Ulangi Evaluasi
+        </button>
+      </div>
     </div>
   `;
+
+  const certBtn = document.getElementById('btn-claim-cert-quiz');
+  if (certBtn) {
+    certBtn.addEventListener('click', () => {
+      if (typeof window.openCertificateModal === 'function') {
+        window.openCertificateModal();
+      }
+    });
+  }
 }
 
 /* ==========================================================================
@@ -1423,6 +2196,239 @@ function initDockerCopier() {
       showToast('docker-compose.yml disalin ke clipboard! 📋');
     }
   });
+}
+
+/* ==========================================================================
+   7.5. Digital Certificate Generator (Canvas Engine)
+   ========================================================================== */
+function initCertificateGenerator() {
+  const modal = document.getElementById('certificate-modal');
+  const closeBtn = document.getElementById('close-cert-modal');
+  const closeSecondaryBtn = document.getElementById('btn-close-cert-secondary');
+  const updateBtn = document.getElementById('btn-update-cert');
+  const downloadBtn = document.getElementById('btn-download-cert');
+  const nameInput = document.getElementById('cert-user-name');
+  const claimTrackerBtn = document.getElementById('btn-claim-certificate-tracker');
+
+  if (!modal) return;
+
+  function openModal() {
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    const name = nameInput ? nameInput.value.trim() || 'Software Engineer' : 'Software Engineer';
+    drawCertificate(name);
+  }
+
+  function closeModal() {
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  if (claimTrackerBtn) claimTrackerBtn.addEventListener('click', openModal);
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (closeSecondaryBtn) closeSecondaryBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+
+  if (updateBtn && nameInput) {
+    updateBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim() || 'Software Engineer';
+      drawCertificate(name);
+      showToast('Preview sertifikat diperbarui! 🎓');
+    });
+    nameInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const name = nameInput.value.trim() || 'Software Engineer';
+        drawCertificate(name);
+      }
+    });
+  }
+
+  if (downloadBtn) {
+    downloadBtn.addEventListener('click', () => {
+      const canvas = document.getElementById('cert-canvas');
+      if (!canvas) return;
+      const rawName = nameInput ? nameInput.value.trim() || 'Engineer' : 'Engineer';
+      const cleanName = rawName.replace(/[^a-zA-Z0-9]/g, '_');
+      const dataUrl = canvas.toDataURL('image/png');
+      const link = document.createElement('a');
+      link.download = `CFK-Mastery-Certificate-${cleanName}.png`;
+      link.href = dataUrl;
+      link.click();
+      showToast('Sertifikat berhasil diunduh! 🎓✨');
+    });
+  }
+
+  // Global window opener for quiz result button
+  window.openCertificateModal = openModal;
+}
+
+function drawCertificate(recipientName) {
+  const canvas = document.getElementById('cert-canvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;  // 1200
+  const height = canvas.height; // 750
+
+  // 1. Background Luxury Deep Dark
+  const bgGrad = ctx.createLinearGradient(0, 0, width, height);
+  bgGrad.addColorStop(0, '#060913');
+  bgGrad.addColorStop(0.5, '#0b1120');
+  bgGrad.addColorStop(1, '#020617');
+  ctx.fillStyle = bgGrad;
+  ctx.fillRect(0, 0, width, height);
+
+  // 2. Blueprint Subtle Grid Pattern
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.04)';
+  ctx.lineWidth = 1;
+  const gridSize = 30;
+  for (let x = 0; x < width; x += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, height);
+    ctx.stroke();
+  }
+  for (let y = 0; y < height; y += gridSize) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(width, y);
+    ctx.stroke();
+  }
+
+  // 3. Double Gold & Neon Border
+  ctx.strokeStyle = 'rgba(245, 158, 11, 0.6)';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(30, 30, width - 60, height - 60);
+
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+  ctx.lineWidth = 1.5;
+  ctx.strokeRect(42, 42, width - 84, height - 84);
+
+  // Decorative Corner Accents
+  const cornerSize = 25;
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 3;
+  // Top-left
+  ctx.beginPath(); ctx.moveTo(25, 25 + cornerSize); ctx.lineTo(25, 25); ctx.lineTo(25 + cornerSize, 25); ctx.stroke();
+  // Top-right
+  ctx.beginPath(); ctx.moveTo(width - 25 - cornerSize, 25); ctx.lineTo(width - 25, 25); ctx.lineTo(width - 25, 25 + cornerSize); ctx.stroke();
+  // Bottom-left
+  ctx.beginPath(); ctx.moveTo(25, height - 25 - cornerSize); ctx.lineTo(25, height - 25); ctx.lineTo(25 + cornerSize, height - 25); ctx.stroke();
+  // Bottom-right
+  ctx.beginPath(); ctx.moveTo(width - 25 - cornerSize, height - 25); ctx.lineTo(width - 25, height - 25); ctx.lineTo(width - 25, height - 25 - cornerSize); ctx.stroke();
+
+  // 4. Header Badge / Issuer
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 13px "Fira Code", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('GOOGLE ANTIGRAVITY — ENTERPRISE SYSTEMS ARCHITECTURE', width / 2, 85);
+
+  // 5. Main Title
+  ctx.fillStyle = '#ffffff';
+  ctx.font = '800 36px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('CERTIFICATE OF MASTERY', width / 2, 140);
+
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = '600 16px "Fira Code", monospace';
+  ctx.fillText('CORE FUNDAMENTAL KNOWLEDGE (CFK) — ENTERPRISE WEB', width / 2, 175);
+
+  // Divider Line
+  const divGrad = ctx.createLinearGradient(width / 2 - 150, 0, width / 2 + 150, 0);
+  divGrad.addColorStop(0, 'rgba(245, 158, 11, 0)');
+  divGrad.addColorStop(0.5, 'rgba(245, 158, 11, 0.8)');
+  divGrad.addColorStop(1, 'rgba(245, 158, 11, 0)');
+  ctx.strokeStyle = divGrad;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(width / 2 - 180, 195);
+  ctx.lineTo(width / 2 + 180, 195);
+  ctx.stroke();
+
+  // 6. Presentation text
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = 'italic 16px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Sertifikat ini dengan bangga dianugerahkan kepada:', width / 2, 240);
+
+  // 7. Recipient Name
+  const nameGrad = ctx.createLinearGradient(width / 2 - 200, 0, width / 2 + 200, 0);
+  nameGrad.addColorStop(0, '#38bdf8');
+  nameGrad.addColorStop(0.5, '#ffffff');
+  nameGrad.addColorStop(1, '#818cf8');
+  ctx.fillStyle = nameGrad;
+  ctx.font = '800 44px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText(recipientName, width / 2, 310);
+
+  // Name Underline
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(width / 2 - 260, 325);
+  ctx.lineTo(width / 2 + 260, 325);
+  ctx.stroke();
+
+  // 8. Description Body
+  ctx.fillStyle = '#cbd5e1';
+  ctx.font = '15px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('Telah membuktikan penguasaan komprehensif atas prinsip fundamental rekayasa web enterprise:', width / 2, 375);
+
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '14px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('The Core Loop Architecture • Concurrency & Pessimistic Locks • Asynchronous Queues & Decoupling', width / 2, 410);
+  ctx.fillText('ACID Transaction Invariants • B-Tree Indexing Traversal • Production Incident Root Cause Analysis (RCA)', width / 2, 435);
+
+  // 9. Verified Holographic Badge / Seal (Left bottom)
+  ctx.save();
+  ctx.translate(180, 560);
+  ctx.strokeStyle = '#f59e0b';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(0, 0, 48, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.arc(0, 0, 42, 0, Math.PI * 2);
+  ctx.stroke();
+
+  ctx.fillStyle = '#f59e0b';
+  ctx.font = 'bold 11px "Fira Code", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('★ VERIFIED ★', 0, -8);
+  ctx.fillStyle = '#38bdf8';
+  ctx.font = 'bold 12px "Fira Code", monospace';
+  ctx.fillText('ENTERPRISE', 0, 8);
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '9px "Fira Code", monospace';
+  ctx.fillText('STANDARDS', 0, 22);
+  ctx.restore();
+
+  // 10. Metadata / Signatures (Right bottom)
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' });
+  const hash = 'CFK-' + Math.abs((recipientName + now.getFullYear()).split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0)).toString(16).toUpperCase().padStart(8, '0');
+
+  ctx.textAlign = 'left';
+  ctx.fillStyle = '#94a3b8';
+  ctx.font = '12px "Fira Code", monospace';
+  ctx.fillText(`Tanggal Terbit : ${dateStr}`, width - 380, 545);
+  ctx.fillText(`Credential ID  : ${hash}`, width - 380, 570);
+  ctx.fillText(`Status         : VERIFIED PASS (Score >= 80%)`, width - 380, 595);
+
+  // Signature line
+  ctx.strokeStyle = '#475569';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(width - 380, 620);
+  ctx.lineTo(width - 120, 620);
+  ctx.stroke();
+
+  ctx.fillStyle = '#64748b';
+  ctx.font = 'italic 11px "Plus Jakarta Sans", sans-serif';
+  ctx.fillText('CFK Academic & Architectural Certification Board', width - 380, 638);
 }
 
 /* ==========================================================================

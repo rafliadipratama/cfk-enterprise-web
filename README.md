@@ -89,6 +89,7 @@ Lalu buka browser di [http://localhost:3000](http://localhost:3000).
 
 4. **💎 10 Pilar Inti yang Diperas (Distilled CFK)**:
    - Kartu prinsip fundamental dilengkapi dengan kartu analitik *"Fakta di Balik Framework"*.
+   - **Multi-Language Production Code Tabs**: Contoh kode nyata enterprise dengan toggle bahasa **TypeScript / Node.js**, **Go**, dan **Python (FastAPI)** untuk setiap pilar, lengkap dengan tombol 1-klik salin kode.
 
 5. **🧪 Interactive Chaos Labs (Simulasi Kerusakan Nyata)**:
    - **Lab 1: Kasus Upload Video >40s & Speech-to-Text (STT)**:
@@ -97,15 +98,25 @@ Lalu buka browser di [http://localhost:3000](http://localhost:3000).
      - Membandingkan *Tanpa Lock* (Race condition saldo negatif) vs *Pessimistic Lock (`SELECT ... FOR UPDATE`)*.
    - **Lab 3: Database Indexing & Query Latency**:
      - Membandingkan *Sequential Scan* (Membaca 1.000.000 baris, 462ms) vs *B-Tree Index Scan* (1.14ms).
+   - **Lab 4: Cache Stampede (Thundering Herd) & DB Pool Crash**:
+     - Membandingkan *Naive Cache Miss* (5.000 request tembus langsung saat TTL expired -> 50/50 connection pool jenuh -> 504 Timeout) vs *Singleflight Mutex Lock* (Hanya 1 query ke DB, 4.999 request menunggu in-flight promise -> 100% sukses, DB CPU 3%).
 
-6. **✅ Checklist Penguasaan Mandiri (Study Tracker)**:
-   - 8 milestone pembelajaran terukur dengan penyimpanan otomatis di `localStorage`.
+6. **🚨 War Room Insiden Produksi (Root Cause Analysis Simulator)**:
+   - Dashboard telemetri langsung (*Live Telemetry Dials*): App Server CPU, PostgreSQL Connection Pool, p99 Latency, dan HTTP 5xx Error Rate.
+   - Skenario Insiden P1: *"Flash Sale Checkout Stalled & Database Pool Saturated"*.
+   - Alur Penanganan 4 Langkah: Triase Darurat (Stop the Bleeding) $\to$ Investigasi Slow Query & Connection Leak $\to$ Resolusi Permanen $\to$ Penerbitan Laporan Post-Mortem (RCA) resmi siap salin ke Markdown.
 
-7. **📊 Evaluasi Kesiapan (Readiness Assessment)**:
-   - Kuis interaktif berbasis 5 skenario insiden produksi (*Root Cause Analysis*).
+7. **✅ Checklist Penguasaan Mandiri (Study Tracker)**:
+   - 10 milestone pembelajaran terukur dengan penyimpanan otomatis di `localStorage`.
 
-8. **🐳 Docker Compose Companion**:
-   - Template satu klik berisi PostgreSQL (connection pool limited), Redis, dan MinIO untuk praktika nyata di komputer lokal.
+8. **📊 Evaluasi Kesiapan (Readiness Assessment)**:
+   - Kuis interaktif berbasis 5 skenario insiden produksi (*Root Cause Analysis*) dengan feedback evaluasi langsung.
+
+9. **🎓 Generator Sertifikat Digital Kesiapan Enterprise**:
+   - Menghasilkan sertifikat kelulusan digital beresolusi tinggi (1200x750) via HTML5 Canvas dengan tema dark luxury, segel holografik, ID Verifikasi unik deterministik, nama kustom pembelajar, dan tombol unduh instan ke file gambar PNG.
+
+10. **🐳 Docker Compose Companion**:
+    - Template satu klik berisi PostgreSQL (connection pool limited), Redis, dan MinIO untuk praktika nyata di komputer lokal.
 
 ---
 
